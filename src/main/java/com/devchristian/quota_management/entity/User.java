@@ -21,11 +21,26 @@ public class User {
     @Column
     private LocalDateTime lastLoginTimeUtc;
 
+    @Column
+    private int quota;
+
     @PrePersist
     protected void onCreate() {
         if (id == null) {
             id = UUID.randomUUID().toString();
         }
+    }
+
+    public int getQuota() {
+        return quota;
+    }
+
+    public void setQuota(int quota) {
+        this.quota = quota;
+    }
+
+    public void setLastLoginTimeUtc(LocalDateTime lastLoginTimeUtc) {
+        this.lastLoginTimeUtc = lastLoginTimeUtc;
     }
 
     public String getId() {

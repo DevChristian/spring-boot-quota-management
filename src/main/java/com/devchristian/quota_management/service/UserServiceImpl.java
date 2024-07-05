@@ -3,8 +3,8 @@ package com.devchristian.quota_management.service;
 import com.devchristian.quota_management.dto.UserRequestDto;
 import com.devchristian.quota_management.dto.UserResponseDto;
 import com.devchristian.quota_management.entity.User;
-import com.devchristian.quota_management.exception.UserNotFoundException;
-import com.devchristian.quota_management.repository.UserRepository;
+import com.devchristian.quota_management.repository.DynamicUserRepository;
+import com.devchristian.quota_management.util.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private final UserRepository userRepository;
+    private final DynamicUserRepository dynamicUserRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserServiceImpl(DynamicUserRepository dynamicUserRepository) {
+        this.dynamicUserRepository = dynamicUserRepository;
     }
 
     @Override
@@ -28,44 +28,45 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         updateUserEntity(user, userRequestDto);
-        user = userRepository.save(user);
+
+        user = dynamicUserRepository.save(user);
 
         LOGGER.info("User created with id: {}", user.getId());
 
-        return convertToResponseDto(user);
+        return convertToUserResponseDto(user);
     }
 
     @Override
     public UserResponseDto getUser(String userId) {
         LOGGER.info("Fetching user with id: {}", userId);
 
-        return userRepository.findById(userId)
-                .map(this::convertToResponseDto)
-                .orElseThrow(() -> logAndThrowUserNotFoundException(userId));
+        return dynamicUserRepository.findById(userId)
+                .map(this::convertToUserResponseDto)
+                .orElseThrow(() -> ServiceUtils.logAndThrowUserNotFoundException(userId));
     }
 
     @Override
     public UserResponseDto updateUser(String userId, UserRequestDto updatedUserRequestDto) {
         LOGGER.info("Updating user with id: {}", userId);
 
-        return userRepository.findById(userId).map(user -> {
+        return dynamicUserRepository.findById(userId).map(user -> {
             updateUserEntity(user, updatedUserRequestDto);
-            user = userRepository.save(user);
+            user = dynamicUserRepository.save(user);
             LOGGER.info("User updated with id: {}", userId);
 
-            return convertToResponseDto(user);
-        }).orElseThrow(() -> logAndThrowUserNotFoundException(userId));
+            return convertToUserResponseDto(user);
+        }).orElseThrow(() -> ServiceUtils.logAndThrowUserNotFoundException(userId));
     }
 
     @Override
     public void deleteUser(String userId) {
         LOGGER.info("Deleting user with id: {}", userId);
 
-        if (userRepository.existsById(userId)) {
-            userRepository.deleteById(userId);
+        if (dynamicUserRepository.existsById(userId)) {
+            dynamicUserRepository.deleteById(userId);
             LOGGER.info("User deleted with id: {}", userId);
         } else {
-            throw logAndThrowUserNotFoundException(userId);
+            throw ServiceUtils.logAndThrowUserNotFoundException(userId);
         }
     }
 
@@ -74,12 +75,8 @@ public class UserServiceImpl implements UserService {
         user.setLastName(userRequestDto.lastName());
     }
 
-    private UserResponseDto convertToResponseDto(User user) {
-        return new UserResponseDto(user.getId(), user.getFirstName(), user.getLastName(), user.getLastLoginTimeUtc());
-    }
-
-    private UserNotFoundException logAndThrowUserNotFoundException(String userId) {
-        LOGGER.error("User not found with id: {}", userId);
-        return new UserNotFoundException("User not found with id: " + userId);
+    private UserResponseDto convertToUserResponseDto(User user) {
+        return new UserResponseDto(user.getId(), user.getFirstName(), user.getLastName(),
+                user.getQuota(), user.getLastLoginTimeUtc());
     }
 }

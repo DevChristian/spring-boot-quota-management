@@ -4,7 +4,7 @@ import com.devchristian.quota_management.dto.UserRequestDto;
 import com.devchristian.quota_management.dto.UserResponseDto;
 import com.devchristian.quota_management.entity.User;
 import com.devchristian.quota_management.exception.UserNotFoundException;
-import com.devchristian.quota_management.repository.UserRepository;
+import com.devchristian.quota_management.repository.DynamicUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private DynamicUserRepository dynamicUserRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -41,75 +41,76 @@ class UserServiceImplTest {
         user.setLastName("Mendez");
 
         userRequestDto = new UserRequestDto("Chris", "Mendez");
-        userResponseDto = new UserResponseDto("1", "Chris", "Mendez", null);
+        userResponseDto = new UserResponseDto("1", "Chris",
+                "Mendez", 0, null);
     }
 
     @Test
     void createUser() {
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(dynamicUserRepository.save(any(User.class))).thenReturn(user);
 
         UserResponseDto createdUser = userService.createUser(userRequestDto);
 
         assertEquals(userResponseDto, createdUser);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(dynamicUserRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void getUser() {
-        when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
+        when(dynamicUserRepository.findById(anyString())).thenReturn(Optional.of(user));
 
         UserResponseDto foundUser = userService.getUser("1");
 
         assertEquals(userResponseDto, foundUser);
-        verify(userRepository, times(1)).findById("1");
+        verify(dynamicUserRepository, times(1)).findById("1");
     }
 
     @Test
     void getUser_UserNotFound() {
-        when(userRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(dynamicUserRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.getUser("1"));
-        verify(userRepository, times(1)).findById("1");
+        verify(dynamicUserRepository, times(1)).findById("1");
     }
 
     @Test
     void updateUser() {
-        when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(dynamicUserRepository.findById(anyString())).thenReturn(Optional.of(user));
+        when(dynamicUserRepository.save(any(User.class))).thenReturn(user);
 
         UserResponseDto updatedUser = userService.updateUser("1", userRequestDto);
 
         assertEquals(userResponseDto, updatedUser);
-        verify(userRepository, times(1)).findById("1");
-        verify(userRepository, times(1)).save(user);
+        verify(dynamicUserRepository, times(1)).findById("1");
+        verify(dynamicUserRepository, times(1)).save(user);
     }
 
     @Test
     void updateUser_UserNotFound() {
-        when(userRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(dynamicUserRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.updateUser("1", userRequestDto));
-        verify(userRepository, times(1)).findById("1");
-        verify(userRepository, times(0)).save(any(User.class));
+        verify(dynamicUserRepository, times(1)).findById("1");
+        verify(dynamicUserRepository, times(0)).save(any(User.class));
     }
 
     @Test
     void deleteUser() {
-        when(userRepository.existsById(anyString())).thenReturn(true);
-        doNothing().when(userRepository).deleteById(anyString());
+        when(dynamicUserRepository.existsById(anyString())).thenReturn(true);
+        doNothing().when(dynamicUserRepository).deleteById(anyString());
 
         userService.deleteUser("1");
 
-        verify(userRepository, times(1)).existsById("1");
-        verify(userRepository, times(1)).deleteById("1");
+        verify(dynamicUserRepository, times(1)).existsById("1");
+        verify(dynamicUserRepository, times(1)).deleteById("1");
     }
 
     @Test
     void deleteUser_UserNotFound() {
-        when(userRepository.existsById(anyString())).thenReturn(false);
+        when(dynamicUserRepository.existsById(anyString())).thenReturn(false);
 
         assertThrows(UserNotFoundException.class, () -> userService.deleteUser("1"));
-        verify(userRepository, times(1)).existsById("1");
-        verify(userRepository, times(0)).deleteById("1");
+        verify(dynamicUserRepository, times(1)).existsById("1");
+        verify(dynamicUserRepository, times(0)).deleteById("1");
     }
 }

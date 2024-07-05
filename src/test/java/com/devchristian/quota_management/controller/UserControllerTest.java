@@ -9,13 +9,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -35,25 +33,24 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
-
-    private UserRequestDto userRequestDto;
     private UserResponseDto userResponseDto;
 
-    private static final String USER_JSON = "{\n" +
-            "    \"firstName\": \"Chris\",\n" +
-            "    \"lastName\": \"Mendez\"\n" +
-            "}";
+    private static final String USER_JSON = """
+            {
+                "firstName": "Chris",
+                "lastName": "Mendez"
+            }""";
 
-    private static final String USER_RESPONSE_JSON = "{\n" +
-            "    \"id\": \"1\",\n" +
-            "    \"firstName\": \"Chris\",\n" +
-            "    \"lastName\": \"Mendez\"\n" +
-            "}";
+    private static final String USER_RESPONSE_JSON = """
+            {
+                "id": "1",
+                "firstName": "Chris",
+                "lastName": "Mendez"
+            }""";
 
     @BeforeEach
     void setUp() {
-        userRequestDto = new UserRequestDto("Chris", "Mendez");
-        userResponseDto = new UserResponseDto("1", "Chris", "Mendez", null);
+        userResponseDto = new UserResponseDto("1", "Chris", "Mendez", 0, null);
     }
 
     @Test
