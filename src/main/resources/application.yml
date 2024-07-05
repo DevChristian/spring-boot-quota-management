@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+app:
+  mysql-time:
+    start: 9
+    end: 17
+
+quota:
+  request:
+    limit: 5
+
+scheduling:
+  # Cron expression for resetting quotas. This is scheduled to run every day at 1 PM.
+  resetQuotasTime: "0 0 13 * * ?"
+
+spring:
+  profiles:
+    active: local
+  datasource:
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQLDialect
